@@ -1,0 +1,92 @@
+version: "3"
+
+networks:
+  dev:
+    driver: bridge
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    depends_on:
+      - mysql
+    networks:
+      - dev
+    ports:
+      - "8001:8000"
+    restart: always
+    volumes:
+      - .:/opt/project
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - dev
+    restart: always
+    volumes:
+      - .:/opt/project
+    command: celery -A roboto.celery_app worker --loglevel=info --beat
+
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    depends_on:
+      - mysql
+    networks:
+      - dev
+    ports:
+      - "8888:8888"
+    restart: always
+    volumes:
+      - .:/opt/project
+      - jupyter-config:/root/.jupyter
+#    command: jupyter-notebook --ip=0.0.0.0 --allow-root
+    command: ./manage.py shell_plus --notebook
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: roboto
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: roboto
+    networks:
+      - dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  redis:
+    image: redis
+    networks:
+      - dev
+
+  minio:
+    image: minio/minio
+    volumes:
+      - minio-data:/export
+    networks:
+      - dev
+    ports:
+      - "9000:9000"
+    environment:
+      MINIO_ACCESS_KEY: development_minio_key
+      MINIO_SECRET_KEY: development_minio_secret
+    command: server /export
+
+volumes:
+  mysql-data:
+    driver: local
+  jupyter-config:
+    driver: local
+  minio-data:
+    driver: local
