@@ -45,6 +45,7 @@ PROJECT_APPS = [
     'roboto',
     'oanda',
     'learning',
+    'strategy',
 ]
 
 INSTALLED_APPS += PROJECT_APPS
@@ -162,6 +163,14 @@ NOTEBOOK_ARGUMENTS = [
     '--port', '8888',
     '--notebook-dir', 'notebooks',
     '--allow-root',
+]
+
+#
+# Learning
+#
+
+FEATURE_STORES = [
+    'oanda.features',
 ]
 
 #

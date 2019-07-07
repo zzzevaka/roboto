@@ -17,4 +17,13 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=1),
     },
 
+    #
+    # STRATEGY
+    #
+
+    'tick_all_strategies': {
+        'task': 'strategy.tasks.tick_all_strategies',
+        'schedule': timedelta(seconds=10),
+    },
+
 }

@@ -9,8 +9,3 @@ def collect_oanda_candles():
 
     for istrument in instruments:
         collect_instrument_candles(istrument)
-
-
-@app.task
-def test_task():
-    print ('lala')

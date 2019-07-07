@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.functional import cached_property
-from learning.utils import KerasModelMixin
+from learning.keras_utils import KerasModelMixin
 
 
 class LearningModel(models.Model, KerasModelMixin):
@@ -13,8 +13,17 @@ class LearningModel(models.Model, KerasModelMixin):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     type = models.SmallIntegerField(choices=TYPE_CHOICES)
-    file = models.FileField(upload_to='learning_models/', null=True)
+    file = models.FileField(upload_to='learning_models/', blank=True)
     time = models.DateTimeField(auto_now=True)
+    _features = models.TextField(db_column='features', blank=True)
+
+    @property
+    def features(self):
+        return self._features.split(',')
+
+    @features.setter
+    def features(self, value):
+        self._features = ','.join(value)
 
     @cached_property
     def model(self):
@@ -26,8 +35,3 @@ class LearningModel(models.Model, KerasModelMixin):
             del self.__dict__['model']
         except KeyError:
             pass
-
-    def save_model(self, model):
-        if self.type == self.TYPE_KERAS:
-            self.save_keras_model(model)
-        self.__clear_model_cache()
