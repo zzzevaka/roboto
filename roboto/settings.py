@@ -163,6 +163,7 @@ NOTEBOOK_ARGUMENTS = [
     '--port', '8888',
     '--notebook-dir', 'notebooks',
     '--allow-root',
+
 ]
 
 #

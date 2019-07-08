@@ -46,8 +46,7 @@ services:
     restart: always
     volumes:
       - .:/opt/project
-      - jupyter-config:/root/.jupyter
-#    command: jupyter-notebook --ip=0.0.0.0 --allow-root
+      - ./deploy/jupyter/jupyter_notebook_config.json:/root/.jupyter/jupyter_notebook_config.json
     command: ./manage.py shell_plus --notebook
 
   mysql:
@@ -82,6 +81,18 @@ services:
       MINIO_ACCESS_KEY: development_minio_key
       MINIO_SECRET_KEY: development_minio_secret
     command: server /export
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - dev
+    ports:
+      - "80:80"
+    depends_on:
+      - jupyter
+      - app
 
 volumes:
   mysql-data:
