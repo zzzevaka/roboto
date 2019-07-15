@@ -1,22 +1,74 @@
 import logging
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 
 import re
 import pandas as pd
-from roboto.models import Instrument
 from learning.features import LearningFeatureStore
 from learning.preprocessing import (
     transform_datetime_index_to_values, transform_categorial,
     drop_until_first_full_field, time_series_difference
 )
+from oanda.models import Trade
 
 logger = logging.getLogger('strategy')
 
 
-class Strategy(models.Model):
+class StrategyInterface(object):
+    def get_data_for_predict(self, end_time):
+        fstore = LearningFeatureStore.get_all_features_store()
+        features = [f for f in fstore.features.values() if re.search('open|close', f.name)]
+        data = None
+        for feature in features:
+            tmp_data = feature.load(
+                end_time=end_time,
+            )
+            if data is None:
+                data = tmp_data
+            else:
+                data = pd.concat([data, tmp_data], axis=1, ignore_index=False)
+        data = drop_until_first_full_field(data)
+        data = data.fillna(method='ffill')
+        data = transform_datetime_index_to_values(data)
+        data = transform_categorial(data, ['weekday', 'day', 'month', 'hour'])
 
-    instrument = models.ForeignKey(Instrument, on_delete=models.SET_NULL, null=True)
+        time_series_columns = [x for x in data.columns if re.match('open|close', x)]
+        difference_values = [240, 216, 192, 168, 144, 120, 96, 72, 48, 24, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, ]
+
+        return time_series_difference(
+            data[:end_time],
+            columns=time_series_columns,
+            difference_values=difference_values,
+            shape3d=True
+        )
+
+    def open_trade(self, end_time):
+        X = self.get_data_for_predict(end_time)[-1:]
+        will_raise = self.model.model.predict_classes([X])[0]
+        units = 500 if will_raise else -500
+        trade = self.trades.create(
+            account=self.account,
+            instrument=self.instrument,
+            units=units,
+        )
+        trade.open()
+
+    def close_trade(self):
+        trades = self.trades.opened()
+        for trade in trades:
+            trade.close()
+
+    def tick(self, now=None):
+        if not now:
+            now = timezone.now()
+        self.close_trade()
+        self.open_trade(now)
+
+
+class Strategy(models.Model, StrategyInterface):
+
+    instrument = models.ForeignKey('roboto.Instrument', on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=100)
     model = models.ForeignKey(
         'learning.LearningModel',
@@ -30,38 +82,20 @@ class Strategy(models.Model):
         null=True, blank=True,
         on_delete=models.SET_NULL,
     )
+    trades = models.ManyToManyField(
+        'oanda.Trade',
+        through='StrategyToTrade',
+        through_fields=('strategy', 'trade')
+    )
     is_active = models.BooleanField(default=False)
 
-    def get_data_for_predict(self, end_time):
-        fstore = LearningFeatureStore.get_all_features_store()
-        features = [f for f in fstore.features.values(end_time=end_time) if re.search('open|close', f.name)]
-        data = pd.concat([f.load() for f in features], axis=1, ignore_index=False)
-        data = drop_until_first_full_field(data)
-        data = data.fillna(method='ffill')
-        data = transform_datetime_index_to_values(data)
-        data = transform_categorial(data, ['weekday', 'day', 'month', 'hour'])
+    def __str__(self):
+        return '{} ({}active)'.format(
+            self.name,
+            '' if self.is_active else 'not '
+        )
 
-        time_series_columns = [x for x in data.columns if re.match('open|close', x)]
-        difference_values = [240, 216, 192, 168, 144, 120, 96, 72, 48, 24, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, ]
-        return time_series_difference(
-            data,
-            columns=time_series_columns,
-            difference_values=difference_values,
-            shape3d=True
-        ).loc[end_time]
 
-    def open_trade(self, end_time):
-        X = self.get_data_for_predict(end_time)
-        predict_class = self.model.predict_classes([X])[0]
-        return predict_class
-
-    def close_trade(self):
-        trades = self.trades.opened()
-        for trade in trades:
-            trade.close()
-
-    def tick(self, now=None):
-        if not now:
-            now = timezone.now()
-        self.close_trade()
-        self.open_trade(now)
+class StrategyToTrade(models.Model):
+    strategy = models.ForeignKey(Strategy, on_delete=models.CASCADE)
+    trade = models.OneToOneField('oanda.Trade', on_delete=models.CASCADE)

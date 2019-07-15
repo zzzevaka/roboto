@@ -1,7 +1,6 @@
 from django.db import models
 from oanda.api_client import get_oanda_api_client
 from roboto.models import Instrument
-from strategy.models import Strategy
 
 
 API = get_oanda_api_client()
@@ -12,10 +11,8 @@ class Account(models.Model):
     alias = models.CharField(max_length=100)
     is_default = models.BooleanField(default=False)
 
-#
-# class Instrument(models.Model):
-#     name = models.CharField(max_length=100, db_index=True)
-#     type = models.CharField(max_length=100, db_index=True)
+    def __str__(self):
+        return 'OandaAccount: {}'.format(self.external_id)
 
 
 class Candle(models.Model):
@@ -64,8 +61,7 @@ class Trade(models.Model):
 
     trade_id = models.SmallIntegerField(null=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    strategy = models.ForeignKey(Strategy, on_delete=models.SET_NULL, null=True, related_name='trades')
-    instrument = models.ForeignKey(Instrument, on_delete=models.CASCADE)
+    instrument = models.ForeignKey('roboto.Instrument', on_delete=models.CASCADE)
     status = models.SmallIntegerField(choices=STATUS_CHOICES, default=STATUS_INIT)
     created_at = models.DateTimeField(null=True)
     closed_at = models.DateTimeField(null=True)
@@ -75,9 +71,11 @@ class Trade(models.Model):
     trade_opened = models.TextField(null=True)
     trade_closed = models.TextField(null=True)
 
-    objects = models.Manager.from_queryset(TradeQuerySet)
+    objects = models.Manager.from_queryset(TradeQuerySet)()
 
     def open(self):
+        assert self.status == self.STATUS_INIT
+
         try:
             create_response = API.order.market(
                 accountID=self.account.external_id,
@@ -88,7 +86,7 @@ class Trade(models.Model):
                 raise ValueError('order creating failed cause: {}'.format(create_response.reason))
 
             if 'orderCancelTransaction' in create_response.body:
-                self.status = self.STATUS_CANCEL
+                self.status = self.STATUS_OPEN_ERROR
                 return
 
             order_create_transaction = create_response.body['orderCreateTransaction']
@@ -119,6 +117,8 @@ class Trade(models.Model):
             self.save()
 
     def close(self):
+        assert self.status == self.STATUS_OPEN
+
         try:
             close_response = API.trade.close(
                 accountID=self.account.external_id,

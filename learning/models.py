@@ -35,3 +35,10 @@ class LearningModel(models.Model, KerasModelMixin):
             del self.__dict__['model']
         except KeyError:
             pass
+
+    def __str__(self):
+        return '{}: {} ({})'.format(
+            self.get_type_display(),
+            self.name,
+            self.id
+        )
