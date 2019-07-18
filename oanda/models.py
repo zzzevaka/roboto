@@ -2,7 +2,6 @@ from django.db import models
 from oanda.api_client import get_oanda_api_client
 from roboto.models import Instrument
 
-
 API = get_oanda_api_client()
 
 

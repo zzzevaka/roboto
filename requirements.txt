@@ -3,6 +3,7 @@ django-celery-beat
 django-storages
 boto3
 v20>=3.0
+finam-export
 django==2.2
 mysqlclient>=1.4.2
 redis
