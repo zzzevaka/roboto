@@ -46,7 +46,7 @@ class StrategyInterface(object):
     def open_trade(self, end_time):
         X = self.get_data_for_predict(end_time)[-1:]
         will_raise = self.model.model.predict_classes([X])[0]
-        units = 500 if will_raise else -500
+        units = 5 if will_raise else -5
         trade = self.trades.create(
             account=self.account,
             instrument=self.instrument,
@@ -62,8 +62,18 @@ class StrategyInterface(object):
     def tick(self, now=None):
         if not now:
             now = timezone.now()
+
+        if self.last_tick and (now - self.last_tick).seconds < 3600:
+            return
+
+        if now.minute < 1 or now.minute > 5:
+            return
+
         self.close_trade()
         self.open_trade(now)
+
+        self.last_tick = now
+        self.save()
 
 
 class Strategy(models.Model, StrategyInterface):
@@ -88,6 +98,7 @@ class Strategy(models.Model, StrategyInterface):
         through_fields=('strategy', 'trade')
     )
     is_active = models.BooleanField(default=False)
+    last_tick = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return '{} ({}active)'.format(

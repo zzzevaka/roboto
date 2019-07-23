@@ -1,4 +1,6 @@
 from datetime import timedelta
+from celery.schedules import crontab
+
 
 BROKER_BACKEND = "redis"
 BROKER_URL = 'redis://redis:6379/0'
@@ -14,7 +16,7 @@ CELERYBEAT_SCHEDULE = {
 
     'collect_oanda_candles': {
         'task': 'oanda.tasks.collect_oanda_candles',
-        'schedule': timedelta(hours=1),
+        'schedule': crontab(minute=0),
     },
 
     #

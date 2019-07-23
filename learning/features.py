@@ -71,7 +71,7 @@ def discover_features():
 
 def get_features(filter_func=lambda x: True):
     store = LearningFeatureStore.get_all_features_store()
-    return [f for f in store.features if filter_func(f)]
+    return [val for key, val in store.features.items() if filter_func(key)]
 
 
 discover_features()
