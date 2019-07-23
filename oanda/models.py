@@ -93,7 +93,6 @@ class Trade(models.Model):
             )
 
             if 'orderCancelTransaction' in create_response.body:
-                self.status = self.STATUS_OPEN_ERROR
                 order_cancel_transaction = create_response.body['orderCancelTransaction']
                 self.transactions.create(
                     type=Transaction.TYPE_ORDER_CANCEL,
@@ -101,9 +100,7 @@ class Trade(models.Model):
                     time=order_cancel_transaction.time,
                     data=order_cancel_transaction.json(),
                 )
-
-
-
+                raise ValueError('trade opening canceled')
 
             order_fill_transaction = create_response.body['orderFillTransaction']
             self.transactions.create(
