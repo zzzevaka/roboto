@@ -84,10 +84,6 @@ class Trade(models.Model):
             if create_response.reason != 'Created':
                 raise ValueError('order creating failed cause: {}'.format(create_response.reason))
 
-            if 'orderCancelTransaction' in create_response.body:
-                self.status = self.STATUS_OPEN_ERROR
-                return
-
             order_create_transaction = create_response.body['orderCreateTransaction']
             self.transactions.create(
                 type=Transaction.TYPE_ORDER_CREATE,
@@ -95,6 +91,19 @@ class Trade(models.Model):
                 time=order_create_transaction.time,
                 data=order_create_transaction.json(),
             )
+
+            if 'orderCancelTransaction' in create_response.body:
+                self.status = self.STATUS_OPEN_ERROR
+                order_cancel_transaction = create_response.body['orderCancelTransaction']
+                self.transactions.create(
+                    type=Transaction.TYPE_ORDER_CANCEL,
+                    external_id=order_cancel_transaction.id,
+                    time=order_cancel_transaction.time,
+                    data=order_cancel_transaction.json(),
+                )
+
+
+
 
             order_fill_transaction = create_response.body['orderFillTransaction']
             self.transactions.create(
@@ -160,9 +169,11 @@ class Trade(models.Model):
 class Transaction(models.Model):
     TYPE_ORDER_CREATE = 0
     TYPE_ORDER_FILL = 1
+    TYPE_ORDER_CANCEL = 2
     TYPE_CHOICES = (
-        (TYPE_ORDER_CREATE, 'order create'),
+        (TYPE_ORDER_CREATE, 'create'),
         (TYPE_ORDER_FILL, 'fill'),
+        (TYPE_ORDER_CANCEL, 'cancel'),
     )
 
     external_id = models.IntegerField()

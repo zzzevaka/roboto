@@ -67,7 +67,7 @@ class StrategyInterface(object):
             return
 
         if now.minute < 1 or now.minute > 5:
-            return
+            raise ValueError('not time for trading')
 
         self.close_trade()
         self.open_trade(now)
