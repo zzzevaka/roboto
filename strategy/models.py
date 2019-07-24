@@ -46,7 +46,7 @@ class StrategyInterface(object):
     def open_trade(self, end_time):
         X = self.get_data_for_predict(end_time)[-1:]
         will_raise = self.model.model.predict_classes([X])[0]
-        units = 5 if will_raise else -5
+        units = 1 if will_raise else -1
         trade = self.trades.create(
             account=self.account,
             instrument=self.instrument,
@@ -66,13 +66,15 @@ class StrategyInterface(object):
         if self.last_tick and (now - self.last_tick).seconds < 3600:
             return
 
+        self.last_tick = now
+        self.save()
+
         if now.minute < 1 or now.minute > 5:
             raise ValueError('not time for trading')
 
         self.close_trade()
         self.open_trade(now)
 
-        self.last_tick = now
         self.save()
 
 
