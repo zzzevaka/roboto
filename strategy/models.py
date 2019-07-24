@@ -66,11 +66,11 @@ class StrategyInterface(object):
         if self.last_tick and (now - self.last_tick).seconds < 3540:
             return
 
-        self.last_tick = now
-        self.save()
-
         if now.minute < 1 or now.minute > 5:
             raise ValueError('not time for trading')
+
+        self.last_tick = now
+        self.save()
 
         self.close_trade()
         self.open_trade(now)
