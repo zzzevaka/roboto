@@ -63,7 +63,7 @@ class StrategyInterface(object):
         if not now:
             now = timezone.now()
 
-        if self.last_tick and (now - self.last_tick).seconds < 3600:
+        if self.last_tick and (now - self.last_tick).seconds < 3540:
             return
 
         self.last_tick = now
