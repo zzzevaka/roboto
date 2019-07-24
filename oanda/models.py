@@ -150,7 +150,7 @@ class Trade(models.Model):
             )
 
             trade_closed = order_fill_transaction.tradesClosed[0]
-            assert trade_closed.tradeID == self.trade_id
+            assert int(trade_closed.tradeID) == self.trade_id
 
             self.closed_at = order_fill_transaction.time
             self.pl = trade_closed.realizedPL
