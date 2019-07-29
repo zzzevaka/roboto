@@ -1,6 +1,34 @@
 from django.db import models
 
 
+class AbstractInstrument(models.Model):
+
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+
+class AbstractCandle(models.Model):
+
+    GRAN_H1 = 1
+    GRAN_CHOICES = (
+        (GRAN_H1, '1 hour'),
+    )
+
+    granularity = models.IntegerField(choices=GRAN_CHOICES)
+    time = models.DateTimeField(db_index=True)
+    open = models.FloatField()
+    close = models.FloatField()
+    low = models.FloatField()
+    high = models.FloatField()
+
+    class Meta:
+        unique_together = ('granularity', 'time', 'instrument')
+        abstract = True
+
+
 class Instrument(models.Model):
 
     VALUE_TYPE_FLOAT = 1

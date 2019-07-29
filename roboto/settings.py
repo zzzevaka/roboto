@@ -46,6 +46,7 @@ PROJECT_APPS = [
     'oanda',
     'learning',
     'strategy',
+    'finam_data',
 ]
 
 INSTALLED_APPS += PROJECT_APPS
