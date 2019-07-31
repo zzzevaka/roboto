@@ -67,7 +67,8 @@ class StrategyInterface(object):
             return
 
         if now.minute < 1 or now.minute > 5:
-            raise ValueError('not time for trading')
+            logger.debug('not time for trading')
+            return
 
         self.last_tick = now
         self.save()
