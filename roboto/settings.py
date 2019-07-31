@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+
+def get_config_option(section, option, default=None):
+    return os.environ.get("ROBOTO_{}_{}".format(section.upper(), option.upper()), default)
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'hmo8w4ie@c9jb@e5mp#w&6llgl$*4j4hvhc-s^^&he%49*b1vy'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = int(get_config_option('GLOBAL', 'debug', 0))
 
 ALLOWED_HOSTS = ['*']
 
@@ -52,6 +57,7 @@ PROJECT_APPS = [
 INSTALLED_APPS += PROJECT_APPS
 
 MIDDLEWARE = [
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -156,6 +162,15 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_S3_SECURE_URLS = False
 
 #
+# Error Tracking
+#
+ROLLBAR = {
+    'access_token': get_config_option('ROLLBAR', 'key'),
+    'environment': get_config_option('ROLLBAR', 'env'),
+    'root': BASE_DIR,
+}
+
+#
 # Jupyper
 #
 
@@ -181,11 +196,12 @@ FEATURE_STORES = [
 
 OANDA_API_HOST = 'api-fxpractice.oanda.com'
 OANDA_API_PORT = 443
-OANDA_API_TOKEN = None
+OANDA_API_TOKEN = get_config_option('OANDA', 'token')
 
 try:
     from local_settings import *
 except ImportError:
     pass
 
-
+import rollbar
+rollbar.init(**ROLLBAR)
