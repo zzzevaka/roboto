@@ -1,5 +1,5 @@
 from roboto.celery_app import app
-from roboto.models import Instrument, Candle
+from roboto.models import Instrument
 from oanda.utils import collect_instrument_candles
 
 

@@ -20,6 +20,14 @@ CELERYBEAT_SCHEDULE = {
     },
 
     #
+    # FINAM
+    #
+    'collect_finam_candles': {
+        'task': 'finam_data.collect_finam_candles',
+        'schedule': crontab(minute=0),
+    },
+
+    #
     # STRATEGY
     #
 

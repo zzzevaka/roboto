@@ -29,11 +29,19 @@ def collect_instrument_candles(instrument, start_time=None):
         timeframe=Timeframe.HOURLY
     )
 
-    for time, value in data.iterrows():
+    for candle_time, value in data.iterrows():
+        # convert Moscow time to UTC
+        candle_time = candle_time.to_pydatetime().astimezone() - timedelta(hours=3)
+        # finam-export use candle start time. Convert to end of candles
+        candle_time = candle_time + timedelta(hours=1)
+
+        if candle_time > timezone.now():
+            continue
+
         try:
             Candle.objects.create(
                 instrument=instrument,
-                time=time.to_pydatetime().replace(tzinfo=pytz.timezone('Europe/Moscow')),
+                time=candle_time,
                 granularity=Candle.GRAN_H1,
                 open=value['<OPEN>'],
                 close=value['<CLOSE>'],

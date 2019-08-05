@@ -188,6 +188,7 @@ NOTEBOOK_ARGUMENTS = [
 
 FEATURE_STORES = [
     'oanda.features',
+    'finam_data.features',
 ]
 
 #
