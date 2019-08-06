@@ -19,12 +19,12 @@ def collect_instrument_candles(instrument, start_time=None):
 
     rub = exporter.lookup(
         name=instrument.name,
-        market=instrument.market,
+        market=instrument.finam_market,
     )
 
     data = exporter.download(
         rub.index[0],
-        market=instrument.market,
+        market=instrument.finam_market,
         start_date=start_time,
         timeframe=Timeframe.HOURLY
     )

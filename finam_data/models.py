@@ -1,12 +1,15 @@
+from enum import IntEnum
 from roboto.models import AbstractInstrument, AbstractCandle
 from django.db import models
 
 
-class ExtendedMarket(object):
-    WORLD_CURRENCIES = 5
-    MOSCOW_CURRENCIES = 45
+class ExtendedMarket(IntEnum):
+    """
+    Markets mapped to ids used by finam.ru export
 
-    # from finam.export.Market
+    List is incomplete, extend it when needed
+    """
+
     BONDS = 2
     COMMODITIES = 24
     CURRENCIES = 45
@@ -20,10 +23,10 @@ class ExtendedMarket(object):
     SPB = 517
     USA = 25
 
+    WORLD_CURRENCIES = 5
+
 
 class Instrument(AbstractInstrument):
-    MARKET_CURRENCIES = 0
-
     MARKET_CHOICES = (
         (ExtendedMarket.MOSCOW_CURRENCIES, 'Moscow currencies'),
         (ExtendedMarket.WORLD_CURRENCIES, 'World currencies'),
@@ -37,9 +40,7 @@ class Instrument(AbstractInstrument):
 
     @property
     def finam_market(self):
-        if self.market == self.MARKET_CURRENCIES:
-            return Market.CURRENCIES
-        raise ValueError('unknown market type')
+        return ExtendedMarket(self.market)
 
 
 class Candle(AbstractCandle):
