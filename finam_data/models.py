@@ -23,6 +23,7 @@ class ExtendedMarket(IntEnum):
     SPB = 517
     USA = 25
 
+    MOSCOW_CURRENCIES = 45
     WORLD_CURRENCIES = 5
 
 
