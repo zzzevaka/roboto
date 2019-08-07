@@ -53,5 +53,6 @@ class Candle(AbstractCandle):
     )
 
     class Meta:
+        unique_together = ('granularity', 'time', 'instrument')
         verbose_name = 'Finam candle'
         verbose_name_plural = 'Finam candles'
