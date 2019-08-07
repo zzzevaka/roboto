@@ -3,7 +3,7 @@ import pytz
 from datetime import timedelta
 from django.utils import timezone
 from django.db import IntegrityError
-from finam.export import Exporter, Timeframe
+from finam.export import Exporter, Timeframe, LookupComparator
 from finam_data.models import Instrument, Candle
 
 
@@ -20,6 +20,7 @@ def collect_instrument_candles(instrument, start_time=None):
     rub = exporter.lookup(
         name=instrument.name,
         market=instrument.finam_market,
+        name_comparator=LookupComparator.EQUALS,
     )
 
     data = exporter.download(
