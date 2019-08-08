@@ -17,6 +17,8 @@ logger = logging.getLogger('oanda')
 
 
 def collect_instrument_candles(instrument, price='M', granularity='H1', count=None):
+    candles_to_create = []
+
     if not count:
         last_time = instrument.candles.last().time
         delta = (timezone.now() - last_time)
@@ -34,15 +36,14 @@ def collect_instrument_candles(instrument, price='M', granularity='H1', count=No
         raise DataLoadingError('oanda api response status is not 200')
 
     for candle in candle_response.body['candles']:
-        try:
-            Candle.objects.create(
-                instrument=instrument,
-                time=dateutil.parser.parse(candle.time),
-                granularity=Candle.GRAN_H1,
-                open=candle.mid.o,
-                close=candle.mid.c,
-                low=candle.mid.l,
-                high=candle.mid.h,
-            )
-        except IntegrityError:
-            logger.debug('duplicate {} ({})'.format(instrument.name, dateutil.parser.parse(candle.time)))
+        candle = Candle.objects.create(
+            instrument=instrument,
+            time=dateutil.parser.parse(candle.time),
+            granularity=Candle.GRAN_H1,
+            open=candle.mid.o,
+            close=candle.mid.c,
+            low=candle.mid.l,
+            high=candle.mid.h,
+        )
+        candles_to_create.append(candle)
+    return Candle.objects.bulk_create(candles_to_create, ignore_conflicts=True)
