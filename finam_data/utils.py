@@ -8,6 +8,8 @@ from finam_data.models import Instrument, Candle
 
 
 def collect_instrument_candles(instrument, start_time=None, end_time=None):
+    candles_to_create = []
+
     if not start_time:
         if instrument.candles.exists():
             last_time = instrument.candles.last().time
@@ -43,15 +45,14 @@ def collect_instrument_candles(instrument, start_time=None, end_time=None):
         if candle_time > timezone.now():
             continue
 
-        try:
-            Candle.objects.create(
-                instrument=instrument,
-                time=candle_time,
-                granularity=Candle.GRAN_H1,
-                open=value['<OPEN>'],
-                close=value['<CLOSE>'],
-                low=value['<LOW>'],
-                high=value['<HIGH>'],
-            )
-        except IntegrityError:
-            pass
+        candle = Candle(
+            instrument=instrument,
+            time=candle_time,
+            granularity=Candle.GRAN_H1,
+            open=value['<OPEN>'],
+            close=value['<CLOSE>'],
+            low=value['<LOW>'],
+            high=value['<HIGH>'],
+        )
+        candles_to_create.append(candle)
+    return Candle.objects.bulk_create(candles_to_create, ignore_conflicts=True)
