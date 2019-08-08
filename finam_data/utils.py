@@ -7,13 +7,16 @@ from finam.export import Exporter, Timeframe, LookupComparator
 from finam_data.models import Instrument, Candle
 
 
-def collect_instrument_candles(instrument, start_time=None):
+def collect_instrument_candles(instrument, start_time=None, end_time=None):
     if not start_time:
         if instrument.candles.exists():
             last_time = instrument.candles.last().time
             start_time = last_time - timedelta(seconds=3600)
         else:
             start_time = timezone.now() - timedelta(days=365*4)
+
+    if not end_time:
+        end_time = timezone.now()
 
     exporter = Exporter()
 
@@ -27,6 +30,7 @@ def collect_instrument_candles(instrument, start_time=None):
         rub.index[0],
         market=instrument.finam_market,
         start_date=start_time,
+        end_date=end_time,
         timeframe=Timeframe.HOURLY
     )
 
