@@ -17,3 +17,4 @@ sklearn
 xgboost
 rollbar
 gym
+statsmodels
