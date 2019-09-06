@@ -65,5 +65,5 @@ def time_series_difference(df, difference_values, columns, shape3d=False):
         if ret_df is None:
             ret_df = tmp_df
         else:
-            ret_df = np.hstack([ret_df, tmp_df])
+            ret_df = np.hstack([tmp_df, ret_df])
     return ret_df[max_diff_value:]
