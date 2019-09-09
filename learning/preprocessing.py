@@ -67,3 +67,20 @@ def time_series_difference(df, difference_values, columns, shape3d=False):
         else:
             ret_df = np.hstack([tmp_df, ret_df])
     return ret_df[max_diff_value:]
+
+
+def reshape_with_window(df, difference_values, columns, shape3d=False):
+    m, f = df.shape
+    ret_df = df[columns].values
+    if shape3d:
+        ret_df = ret_df.reshape(m, 1, f)
+    max_diff_value = max(difference_values)
+    for t in difference_values:
+        new_columns = ['{}_{}'.format(c, t) for c in columns]
+        tmp_df = df.drop(columns, axis=1)
+        tmp_df[new_columns] = df[columns].shift(t)
+        tmp_df = tmp_df.values
+        if shape3d:
+            tmp_df = tmp_df.reshape(m, 1, f)
+        ret_df = np.hstack([tmp_df, ret_df])
+    return ret_df[max_diff_value:]

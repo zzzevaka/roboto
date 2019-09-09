@@ -89,7 +89,7 @@ services:
     networks:
       - dev
     ports:
-      - "80:80"
+      - "81:80"
     depends_on:
       - jupyter
       - app
