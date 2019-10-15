@@ -1,4 +1,8 @@
-# Roboto - trading robot
+# Roboto - a sandbox for ML research in finance
+
+- running IPython notebooks in Django environment
+- tools for collecting data from finam and oanda
+- saving trained ML and DL models to database
 
 ## Starting:
 
