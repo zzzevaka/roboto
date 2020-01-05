@@ -1,6 +1,8 @@
 # env config
 app.env
 
+# data
+notebooks/data/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

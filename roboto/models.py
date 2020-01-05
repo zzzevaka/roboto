@@ -9,12 +9,18 @@ class AbstractInstrument(models.Model):
     class Meta:
         abstract = True
 
+    def __str__(self):
+        return f'{self.__class__}: {self.name}'
+
 
 class AbstractCandle(models.Model):
 
+    GRAN_MINUTE1 = 'MINUTE_1'
+    GRAN_HOUR1 = 'HOUR_1'
     GRAN_H1 = 1
     GRAN_CHOICES = (
-        (GRAN_H1, '1 hour'),
+        (GRAN_MINUTE1, GRAN_MINUTE1),
+        (GRAN_HOUR1, GRAN_HOUR1)
     )
 
     granularity = models.IntegerField(choices=GRAN_CHOICES)

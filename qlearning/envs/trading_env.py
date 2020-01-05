@@ -112,7 +112,7 @@ class TradingEnv(gym.Env):
 
         unit_count = int(self.wallet_amount * 0.10)
 
-        profit =  MarketOrder(
+        profit = MarketOrder(
             order_type=order_type,
             unit_count=int(self.wallet_amount * 0.10),
             values=self.target_history[self.curr_step:],

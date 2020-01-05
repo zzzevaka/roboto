@@ -1,13 +1,10 @@
-import logging
-import pytz
 from datetime import timedelta
 from django.utils import timezone
-from django.db import IntegrityError
 from finam.export import Exporter, Timeframe, LookupComparator
-from finam_data.models import Instrument, Candle
+from finam_data.models import  Candle
 
 
-def collect_instrument_candles(instrument, start_time=None, end_time=None):
+def collect_instrument_candles(instrument, start_time=None, end_time=None, timeframe=Timeframe.HOURLY):
     candles_to_create = []
 
     if not start_time:
@@ -33,7 +30,7 @@ def collect_instrument_candles(instrument, start_time=None, end_time=None):
         market=instrument.finam_market,
         start_date=start_time,
         end_date=end_time,
-        timeframe=Timeframe.HOURLY
+        timeframe=timeframe,
     )
 
     for candle_time, value in data.iterrows():

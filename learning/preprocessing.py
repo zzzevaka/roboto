@@ -71,6 +71,7 @@ def time_series_difference(df, difference_values, columns, shape3d=False):
 
 def reshape_with_window(df, difference_values, columns, shape3d=False):
     m, f = df.shape
+    columns = list(columns)
     ret_df = df[columns].values
     if shape3d:
         ret_df = ret_df.reshape(m, 1, f)
