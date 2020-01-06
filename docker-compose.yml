@@ -10,7 +10,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: deploy/docker/Dockerfile.app
     env_file:
       - app.env
     depends_on:
