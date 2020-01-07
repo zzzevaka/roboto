@@ -19,3 +19,4 @@ rollbar
 gym
 statsmodels
 elasticsearch
+apache-airflow[mysql,celery,redis]

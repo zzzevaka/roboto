@@ -82,6 +82,69 @@ services:
       MINIO_SECRET_KEY: development_minio_secret
     command: server /export
 
+  airflow-database:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: roboto
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: airflow
+    networks:
+      - dev
+    volumes:
+      - airflow-mysql-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.app
+    environment:
+      AIRFLOW_HOME: /opt/project/airflow_home
+    networks:
+      - dev
+    volumes:
+       - .:/opt/project
+    command: airflow webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      - airflow-database
+      - redis
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.app
+    environment:
+      AIRFLOW_HOME: /opt/project/airflow_home
+    networks:
+      - dev
+    volumes:
+      - .:/opt/project
+    command: airflow scheduler
+    depends_on:
+      - airflow-database
+      - redis
+
+  airflow-worker:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.app
+    environment:
+      AIRFLOW_HOME: /opt/project/airflow_home
+      C_FORCE_ROOT: 1
+    networks:
+      - dev
+    volumes:
+      - .:/opt/project
+    command: airflow worker
+    depends_on:
+      - airflow-database
+      - redis
+    ports:
+      - "8793:8793"
+
   nginx:
     image: nginx
     volumes:
@@ -96,6 +159,8 @@ services:
 
 volumes:
   mysql-data:
+    driver: local
+  airflow-mysql-data:
     driver: local
   jupyter-config:
     driver: local
