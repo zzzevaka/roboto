@@ -4,7 +4,7 @@ django-storages
 boto3
 v20>=3.0
 finam-export
-django==2.2
+django==2.2.10
 mysqlclient>=1.4.2
 redis
 pyyaml
